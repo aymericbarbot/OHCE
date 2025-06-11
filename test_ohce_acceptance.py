@@ -33,3 +33,14 @@ def test_salue_bonjour():
 def test_salue_bonsoir():
     out = run_ohce("", mock_time="20:00")
     assert out[0] == "Bonsoir !"
+
+def test_arret_auto_apres_inactivite():
+    proc = subprocess.run(
+        [sys.executable, SCRIPT, "--mock-time", "10:00"],  # 10 h ⇒ Bonjour
+        input=b"",                     # aucune saisie utilisateur
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env={**os.environ, "OHCE_TIMEOUT": "1"},  # 1 s au lieu de 60
+        timeout=3                                 # marge de sécurité
+    )
+    assert proc.stdout.decode().splitlines() == ["Bonjour !", "Au revoir !"]
