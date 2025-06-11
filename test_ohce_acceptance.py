@@ -29,3 +29,7 @@ def test_palindrome_declenche_message():
     out = run_ohce("kayak\n")
     assert "Bien dit !" in out
 
+def test_salue_bonjour():
+    out = run_ohce("", mock_time="08:00")
+    # la première ligne doit être la salutation
+    assert out[0] == "Bonjour !"
