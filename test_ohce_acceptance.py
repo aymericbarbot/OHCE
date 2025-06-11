@@ -10,3 +10,7 @@ def run_ohce(inputs: str = ""):
 def test_pytest_marche():
     assert True is True
 
+def test_palindrome_declenche_message():
+    out = run_ohce("kayak\n")
+    assert "Bien dit !" in out
+
