@@ -2,7 +2,22 @@ import subprocess, sys, os
 from pathlib import Path
 SCRIPT = Path(__file__).parent / "ohce.py"
 
-def run_ohce(inputs: str = ""):
+def run_ohce(inputs: str = "", mock_time: str = "10:00", timeout: int = 2):
+    """
+    Exécute le programme avec la saisie `inputs` (terminée par \n si besoin)
+    et renvoie la liste des lignes imprimées.
+    """
+    proc = subprocess.run(
+        [sys.executable, SCRIPT, "--mock-time", mock_time],
+        input=inputs.encode(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env={**os.environ, "OHCE_TIMEOUT": "1"},  # timeout court pour ne jamais bloquer
+        timeout=timeout
+    )
+    return proc.stdout.decode().splitlines()
+
+def test_miroir_simple():
     out = run_ohce("test\n")
     # On veut que "tset" apparaisse dans la sortie, peu importe la position
     assert "tset" in out
