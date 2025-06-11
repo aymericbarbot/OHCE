@@ -3,10 +3,6 @@ from pathlib import Path
 SCRIPT = Path(__file__).parent / "ohce.py"
 
 def run_ohce(inputs: str = "", mock_time: str = "10:00", timeout: int = 2):
-    """
-    Exécute le programme avec la saisie `inputs` (terminée par \n si besoin)
-    et renvoie la liste des lignes imprimées.
-    """
     proc = subprocess.run(
         [sys.executable, SCRIPT, "--mock-time", mock_time],
         input=inputs.encode(),
@@ -33,3 +29,7 @@ def test_salue_bonjour():
     out = run_ohce("", mock_time="08:00")
     # la première ligne doit être la salutation
     assert out[0] == "Bonjour !"
+
+def test_salue_bonsoir():
+    out = run_ohce("", mock_time="20:00")
+    assert out[0] == "Bonsoir !"
