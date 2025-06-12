@@ -1,5 +1,6 @@
 import subprocess, sys, os
 from pathlib import Path
+from ohce_builder import OhceBuilder   
 SCRIPT = Path(__file__).parent / "ohce.py"
 
 def run_ohce(inputs: str = "", mock_time: str = "10:00", timeout: int = 2):
@@ -44,3 +45,12 @@ def test_arret_auto_apres_inactivite():
         timeout=3                                 # marge de sécurité
     )
     assert proc.stdout.decode().splitlines() == ["Bonjour !", "Au revoir !"]
+
+def test_greeting_in_english():
+   
+    lang = "en"
+    out  = run_ohce(inputs="", mock_time="10:00", lang=lang)   # ← run_ohce sera adapté
+    expected = OhceBuilder(lang).greeting(
+        datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
+    )
+    assert out[0] == expected
