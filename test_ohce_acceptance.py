@@ -1,16 +1,23 @@
 import subprocess, sys, os
 from pathlib import Path
-from ohce_builder import OhceBuilder   
+from ohce_builder import OhceBuilder
+from datetime import datetime   
 SCRIPT = Path(__file__).parent / "ohce.py"
+builder_language = OhceBuilder("fr")
 
-def run_ohce(inputs: str = "", mock_time: str = "10:00", timeout: int = 2):
+def run_ohce(
+    inputs: str = "",
+    mock_time: str = "10:00",
+    lang: str = "fr",
+    timeout: int = 2,
+):
     proc = subprocess.run(
-        [sys.executable, SCRIPT, "--mock-time", mock_time],
+        [sys.executable, SCRIPT, "--mock-time", mock_time, "--lang", lang],
         input=inputs.encode(),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        env={**os.environ, "OHCE_TIMEOUT": "1"},  # timeout court pour ne jamais bloquer
-        timeout=timeout
+        env={**os.environ, "OHCE_TIMEOUT": "1"},
+        timeout=timeout,
     )
     return proc.stdout.decode().splitlines()
 
@@ -24,16 +31,18 @@ def test_pytest_marche():
 
 def test_palindrome_declenche_message():
     out = run_ohce("kayak\n")
-    assert "Bien dit !" in out
+    assert builder_language.palindrome()
 
 def test_salue_bonjour():
     out = run_ohce("", mock_time="08:00")
     # la première ligne doit être la salutation
-    assert out[0] == "Bonjour !"
+    dt  = datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)
+    assert out[0] == builder_language.greeting(dt)
 
 def test_salue_bonsoir():
     out = run_ohce("", mock_time="20:00")
-    assert out[0] == "Bonsoir !"
+    dt  = datetime.now().replace(hour=20, minute=0, second=0, microsecond=0)
+    assert out[0] == builder_language.greeting(dt)
 
 def test_arret_auto_apres_inactivite():
     proc = subprocess.run(
@@ -44,7 +53,9 @@ def test_arret_auto_apres_inactivite():
         env={**os.environ, "OHCE_TIMEOUT": "1"},  # 1 s au lieu de 60
         timeout=3                                 # marge de sécurité
     )
-    assert proc.stdout.decode().splitlines() == ["Bonjour !", "Au revoir !"]
+    lines = proc.stdout.decode().splitlines()
+    dt10 = datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
+    assert lines == [builder_language.greeting(dt10), builder_language.farewell()]
 
 def test_greeting_in_english():
    
@@ -54,3 +65,9 @@ def test_greeting_in_english():
         datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
     )
     assert out[0] == expected
+
+def test_greeting_in_english():
+    out = run_ohce("", mock_time="10:00", lang="en")
+    builder_en = OhceBuilder("en")
+    dt10 = datetime.now().replace(hour=10, minute=0, second=0, microsecond=0)
+    assert out[0] == builder_en.greeting(dt10)

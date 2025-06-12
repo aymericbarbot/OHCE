@@ -1,5 +1,6 @@
 import sys, argparse, os, threading 
 from datetime import datetime
+from ohce_builder import OhceBuilder 
 
 DEFAULT_TIMEOUT = int(os.getenv("OHCE_TIMEOUT", "60"))
 
@@ -35,30 +36,32 @@ def _timeout_exit(stop_event: threading.Event):
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--mock-time", help="HH:MM (tests)", default=None)
+    parser.add_argument("--lang",      help="Code langue (fr, en…)", default="fr")
     args = parser.parse_args(argv)
 
-    dt = _parse_dt(args.mock_time)
-    print(greeting(dt))                       # salutation affichée avant la boucle
+    dt       = _parse_dt(args.mock_time)
+    builder  = OhceBuilder(args.lang)
+
+    print(builder.greeting(dt or datetime.now()))
 
     stop = threading.Event()
     threading.Thread(target=_timeout_exit, args=(stop,), daemon=True).start()
     try:
         for line in sys.stdin:
-            stop.set()                              # une saisie ⇒ on annule
+            stop.set()
             text = line.rstrip("\n")
 
             if is_palindrome(text):
-                print("Bien dit !")
+                print(builder.palindrome())
             else:
                 print(mirror(text))
 
-            # relance un nouveau compte-à-rebours après chaque input
             stop = threading.Event()
             threading.Thread(target=_timeout_exit, args=(stop,), daemon=True).start()
     except KeyboardInterrupt:
         pass
 
-    print(farewell())
+    print(builder.farewell())
 
 if __name__ == "__main__":
     main()
